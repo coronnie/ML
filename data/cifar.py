@@ -1,8 +1,8 @@
 import os
 import sys
-import gzip
 import cPickle
 import numpy as np
+
 
 class CifarLoader(object):
 	"""docstring for CifarLoader"""
@@ -15,37 +15,33 @@ class CifarLoader(object):
 			print "file not found"
 			exit(1)
 		else:
-			# for i in xrange(1, 6):
-			# 	file = os.path.join(self.path, 'data_batch_'+str(i))
-			# 	with open(file, 'rb') as fo:
-			# 		fdict = cPickle.load(fo)
-			file_train = os.path.join(self.path ,'data_batch_1')
-			with open(file_train, 'rb') as fo:
-				fdict = cPickle.load(fo)
-		data = fdict['data']
-		data = data.reshape(data.shape[0], 3, 32, 32)
-		labels = fdict['labels']
-		return data, labels
+			num_samples = 50000
+			x_train = np.empty((num_samples, 3, 32, 32), dtype='uint8')
+			y_train = np.empty((num_samples,), dtype='uint8')
+			for i in xrange(1, 6):
+				file_train = os.path.join(self.path ,'data_batch_'+str(i))
+				with open(file_train, 'rb') as fo:
+					fdict = cPickle.load(fo)
+				data = fdict['data']
+				data = data.reshape(data.shape[0], 3, 32, 32)
+				labels = fdict['labels']
+				x_train[(i-1)*10000:i*10000, :, :, :] = data
+				y_train[(i-1)*10000:i*10000] = labels
+
+		return x_train, y_train
 
 	def load_test(self):
 		if not os.path.exists(self.path):
 			print "file not found"
 			exit(1)
 		else:
-			# for i in xrange(1, 6):
-			# 	file = os.path.join(self.path, 'data_batch_'+str(i))
-			# 	with open(file, 'rb') as fo:
-			# 		fdict = cPickle.load(fo)
 			file_test = os.path.join(self.path ,'test_batch')
 			with open(file_test, 'rb') as fo:
 				fdict = cPickle.load(fo)
 
-		data = fdict['data']
-		data = data.reshape(data.shape[0], 3, 32, 32)
-		labels = fdict['labels']
-		return data, labels
+		x_test = fdict['data']
+		x_test = x_test.reshape(x_test.shape[0], 3, 32, 32)
+		y_test = fdict['labels']
+		return x_test, y_test
 
 
-dataloader = CifarLoader('../../../cifar-10-batches-py/')
-cifar_data_test, labels_test = dataloader.load_test()
-print cifar_data_test.shape
