@@ -7,6 +7,7 @@ used together with:
 '''
 import tensorflow as tf
 from tensorflow.keras.models import Model 
+from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import (
 	Input,
 	Activation,
@@ -22,17 +23,17 @@ from tensorflow.keras.layers import AveragePooling2D
 from tensorflow.keras.layers import BatchNormalization
 from tensorflow.keras.regularizers import l2
 from tensorflow.keras import backend
+from tensorflow.keras.layers import AlphaDropout
+#from tensorflow.keras.activations import selu
+from tensorflow.contrib.nn import alpha_dropout
+from ML.models import SNN
 
 ROW_AXIS = 1
 COL_AXIS = 2
 CHANNEL_AXIS = 3
 
-def selu(input):
-	'''
-	first relu layer
-	SNN doesn't need batchnormalization layers
-	'''
-	return Activation('selu')(input)
+def selu(x):
+	return Activation('selu')(x)
 
 def conv_selu(**conv_parameters):
 	'''build a conv -> bn -> relu block'''
@@ -133,7 +134,9 @@ def basic_block(filters, init_strides=(1,1), is_first_block_of_first_layer=False
 		conv_3_3 = selu_conv(filters=filters, kernel_size=(3,3))(conv_1_1)
 		residual = selu_conv(filters=filters*4, kernel_size=(1,1))(conv_3_3)
 
-		return shortcut(input, residual)
+		return AlphaDropout(0.1)(shortcut(input, residual))
+		# return shortcut(input, residual)
+		#return tf.layers.dropout(shortcut(input, residual), 0.2)
 
 	return f
 
@@ -173,11 +176,10 @@ class NetBuilder(object):
 			raise Exception("Input shape must a tuple (nb_channels, nb_rows, nb_cols)")
 		# permute dimension order if necessary
 		input_shape = (input_shape[1], input_shape[2], input_shape[0])
-
+		
 		input = Input(shape=input_shape)
 		conv1 = conv_selu(filters=64, kernel_size=(7,7), strides=(2,2))(input)
 		pool1 = MaxPooling2D(pool_size=(3,3), strides=(2,2), padding='same')(conv1)
-
 		block = pool1
 		filters = 64
 		for i, r in enumerate(repetitions):
