@@ -56,7 +56,7 @@ X_test -= mean_image
 X_train /= 128.
 X_test /= 128.
 
-model = ResNet.NetBuilder.build_resnet_18((img_channels, img_rows, img_cols), nb_classes)
+model = ResNet.ResNet18((img_rows, img_cols, img_channels), nb_classes, dropout=0.1)
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 if not data_augmentation:
