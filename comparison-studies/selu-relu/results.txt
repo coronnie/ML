@@ -1,0 +1,29 @@
+This comparison study is to verify the effectiveness of the Selu (scaled exponential linear unit) activation, it's proposed in [] to be the activation function in a self-normalizing network. The most popular activation function today is Relu, and it's often paired with batch normalization method, especially in very deep networks, to ameliorate disappearing and exploding gradients. Selu, being self-normalizing, can be used alone to build deep networks.
+
+There are 2 models that has been studied, the first is on a simple CNN with 2 hidden CONV layers, the second is on a ResNet18, which is a much deeper network.
+
+All tests are performed on the CIFAR10 datasets.
+
+The structure of the networks:
+Conventional:
+ - activation: Relu
+ - batch_normalization: yes
+ - initializer: he_normal
+
+Self-normalizing network:
+ - activation: Selu
+ - batch_normalization: no
+ - initializer: lecun_normal
+
+
+Results:
+
+1. Selu and Relu can both work well on the the simple CNN with or without batch normalization.
+
+2. Relu with batch normalization works on ResNet, it doesn't work without batch normalization. Selu can indeed work on ResNet without batch normalization.
+
+3. Relu with batch normalization trains faster than Selu.
+
+4. lecun_normal is the proposed initialization method to use with Selu, however in my study, he_normal works well with Selu too.
+
+5. 2 optimizers are used to train the model: adam and rmsprop. Only adam works for Selu. This is probably because Selu alone is still slower than Relu+batch_normalization, and would more likely stuck. Adam is essentially rmsprop with momentum, making the training more easily to follow the promising paths.
